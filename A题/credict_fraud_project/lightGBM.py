@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score, recall_score, precision_score, roc_auc_score, roc_curve
+from sklearn.metrics import accuracy_score, recall_score, precision_score, roc_auc_score, roc_curve, f1_score
 from sklearn.metrics import confusion_matrix,classification_report
 from sklearn.model_selection import train_test_split
 from lightgbm import LGBMClassifier, plot_importance
@@ -23,11 +23,11 @@ def lightgbm_building():
 
 
     params = {
-        'max_depth': [6, 8, 10, 14],
-        'learning_rate': [0.1, 0.15, 0.2],
+        'max_depth': [6, 8, 10],
+        'learning_rate': [0.2],
         'num_leaves': [10, 20, 30]
     }
-    lgbm_gs = GridSearchCV(lgbm, cv=5, param_grid=params, n_jobs=-1)
+    lgbm_gs = GridSearchCV(lgbm, cv=3, param_grid=params, n_jobs=-1)
     lgbm_gs.fit(train_x, train_y)
     best = lgbm_gs.best_estimator_
     print('lightGBM最优参数为：', lgbm_gs.best_params_)
@@ -39,6 +39,23 @@ def lightgbm_building():
 
     #可视化混淆矩阵
     print('最优模型混淆矩阵为：', classification_report(test_y, lgbm_gs_pred))
+
+    n_errors = (lgbm_gs_pred != test_y).sum()
+    print(f'模型预测错误个数为：{n_errors}')
+
+    acc = accuracy_score(test_y, lgbm_gs_pred)
+    print("准确率为： {}".format(acc))
+
+    prec = precision_score(test_y, lgbm_gs_pred)
+    print("精确率为：{}".format(prec))
+
+    rec = recall_score(test_y, lgbm_gs_pred)
+    print("召回率为：{}".format(rec))
+
+    f1 = f1_score(test_y, lgbm_gs_pred)
+    print(" F1-Score 为： {}".format(f1))
+    print('混淆矩阵为：', classification_report(test_y, lgbm_gs_pred))
+
     cm = confusion_matrix(test_y, lgbm_gs_pred)
     sns.heatmap(cm, annot=True, fmt="d", cbar=False)
     plt.title('LightGBM Confusion Matrix')
@@ -58,6 +75,7 @@ def lightgbm_building():
     plt.legend(loc='lower right')
     plt.savefig('LightGBM_roc_curve')
     plt.show()
+
 
 
 if __name__ == '__main__':

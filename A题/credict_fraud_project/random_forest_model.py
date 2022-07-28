@@ -54,8 +54,9 @@ def random_forest_building():
     # 系数+1代表理想预测，0代表平均随机预测，-1代表逆预测
     MCC = matthews_corrcoef(test_y, pred_y)
     print("Matthews相关系数为：{}".format(MCC))
+    print('混淆矩阵为：', classification_report(test_y, pred_y))
 
-    #可视化features重要性
+    可视化features重要性
     feature_imp = pd.Series(rfc.feature_importances_,
                             index=train_x.columns).sort_values(ascending=False)
     plt.figure(figsize=(15, 13))
@@ -71,6 +72,21 @@ def random_forest_building():
     plt.title('RFC Confusion Matrix')
     plt.savefig('RFC_con_matrix')
     plt.show()
+
+    rfc_roc_auc = roc_auc_score(test_y, pred_y)
+    fpr, tpr, thresholds = roc_curve(test_y, pred_y)
+    plt.figure()
+    plt.plot(fpr, tpr, label='AUC (area = %0.2f)' % rfc_roc_auc)
+    plt.plot([0, 1], [0, 1], 'r--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('FPR')
+    plt.ylabel('TPR')
+    plt.legend(loc='lower right')
+    plt.savefig('RFC_ROC_curve')
+    plt.show()
+
+
 
 if __name__ == '__main__':
     random_forest_building()
